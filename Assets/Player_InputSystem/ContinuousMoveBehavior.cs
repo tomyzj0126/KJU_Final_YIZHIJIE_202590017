@@ -175,10 +175,10 @@ public class ContinuousMoveBehavior : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("ClimbableLadder")) { 
+        if (HasTag(other, "ClimbableLadder")) { 
             currentClimbType = climbType.Ladder; 
             PlayerManager.Instance.SetMoveState(PlayerMovementState.Climb); }
-        if (other.CompareTag("ClimbableCliff")) { 
+        if (HasTag(other, "ClimbableCliff")) { 
             currentClimbType = climbType.Cliff; 
             PlayerManager.Instance.SetMoveState(PlayerMovementState.Climb); 
         }
@@ -186,10 +186,15 @@ public class ContinuousMoveBehavior : MonoBehaviour
 
     void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("ClimbableLadder") || other.CompareTag("ClimbableCliff"))
+        if (HasTag(other, "ClimbableLadder") || HasTag(other, "ClimbableCliff"))
         {
             currentClimbType = climbType.None;
             PlayerManager.Instance.SetMoveState(PlayerMovementState.Air);
         }
+    }
+
+    bool HasTag(Collider other, string tagName)
+    {
+        return other != null && other.gameObject.tag == tagName;
     }
 }

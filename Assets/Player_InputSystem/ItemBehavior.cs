@@ -40,9 +40,11 @@ public class ItemBehavior : MonoBehaviour
                 if (!inventory.Contains(item)) // 중복 체크
                 {
                     Debug.Log($"<color=cyan>[ItemBehavior]</color> TryAddItem --> AddItem");
-                    
-                    grab.GrabbingObject = null; // 그랩 해제
-                    //grab.IsGrabbing = false; // GrabBehavior의 상태 플래그도 명시적으로 꺼줍니다.
+
+                    item.Act_Release();
+                    grab.GrabbingObject = null;
+                    PlayerManager.Instance.CurrentObject = null;
+                    PlayerManager.Instance.SetInteractionState(PlayerInteractionState.Idle);
                     AddItem(item);
                 }
             }
@@ -57,8 +59,11 @@ public class ItemBehavior : MonoBehaviour
         string itemName = (item.itemData != null) ? item.itemData.Name : item.gameObject.name;
 
         inventory.Add(item);
-        item.gameObject.SetActive(false);
+        SetInventoryPhysics(item, false);
         item.transform.SetParent(transform);
+        item.transform.localPosition = Vector3.zero;
+        item.transform.localRotation = Quaternion.identity;
+        item.gameObject.SetActive(false);
 
         // 맨손 상태 유지를 위한 상태 강제 초기화
         // 새로 추가된 아이템이 첫 번째 아이템이든 아니든, 즉시 꺼내지(Equip) 않습니다.
@@ -122,6 +127,7 @@ public class ItemBehavior : MonoBehaviour
         // 기존 장착 아이템 가방으로 집어넣기
         if (itemBase != null)
         {
+            SetInventoryPhysics(itemBase, false);
             itemBase.gameObject.SetActive(false);
             itemBase.transform.SetParent(transform);
             itemBase = null; // 참조 초기화
@@ -208,6 +214,7 @@ public class ItemBehavior : MonoBehaviour
         itemBase.transform.localPosition = Vector3.zero;
         itemBase.transform.localRotation = Quaternion.identity;
         itemBase.gameObject.SetActive(true);
+        SetInventoryPhysics(itemBase, false);
         Debug.Log($"<color=cyan>[ItemBehavior]</color> Equip: itemBase.gameObject = {itemBase.gameObject.name}");
         Debug.Log($"<color=cyan>[ItemBehavior]</color> Equip --> itemBase.OnEquip");
 
@@ -230,6 +237,10 @@ public class ItemBehavior : MonoBehaviour
         Debug.Log($"<color=cyan>[ItemBehavior]</color>UnEquip {holdingHand.gameObject}");
         
         itemBase.OnUnEquip(holdingHand.gameObject);  // Actor_Item에게 ItemHolder 전달 (위치 계산용)
+        SetInventoryPhysics(itemBase, false);
+        itemBase.transform.SetParent(transform);
+        itemBase.transform.localPosition = Vector3.zero;
+        itemBase.transform.localRotation = Quaternion.identity;
         itemBase.gameObject.SetActive(false);
         itemBase = null;
 
@@ -268,11 +279,30 @@ public class ItemBehavior : MonoBehaviour
         Destroy(consumedItem.gameObject);
     }
 
+    private void SetInventoryPhysics(InterfaceBase_IItem item, bool enableWorldPhysics)
+    {
+        if (item == null) return;
+
+        if (item.TryGetComponent<Rigidbody>(out var rb))
+        {
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = !enableWorldPhysics;
+            rb.useGravity = enableWorldPhysics;
+        }
+
+        if (item.TryGetComponent<Collider>(out var itemCollider))
+        {
+            itemCollider.enabled = enableWorldPhysics;
+        }
+    }
+
     public void Drop()
     {
         if (itemBase == null) return;
         Debug.Log($"<color=cyan>[ItemBehavior]</color> Drop: {itemBase.itemData.Name} 장착 해제");
         itemBase.OnDrop(holdingHand.gameObject); // Actor_Item에게 ItemHolder 전달 (드롭 위치 계산용)
+        SetInventoryPhysics(itemBase, true);
 
         itemBase = null;
         PlayerManager.Instance.SetInteractionState(PlayerInteractionState.Idle);

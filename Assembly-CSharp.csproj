@@ -62,7 +62,9 @@
   <ItemGroup>
     <Compile Include="Assets\Player_InputSystem\InterfaceBase_IInteractable.cs" />
     <Compile Include="Assets\Player_InputSystem\SO_ItemData.cs" />
+    <Compile Include="Assets\Player_Interactions\WallTextSpawner.cs" />
     <Compile Include="Assets\Player_InputSystem\SO_PlatformData.cs" />
+    <Compile Include="Assets\Player_Interactions\LeverDoorController.cs" />
     <Compile Include="Assets\Player_Interactions\Actor_GameObject.cs" />
     <Compile Include="Assets\Player_InputSystem\ContinuousMoveBehavior.cs" />
     <Compile Include="Assets\Player_Interactions\Actor_Item_Camera.cs" />
@@ -91,22 +93,26 @@
     <Compile Include="Assets\Player_InputSystem\Interface_IPointing.cs" />
     <Compile Include="Assets\Player_Interactions\Actor_Bullet.cs" />
     <Compile Include="Assets\Player_Interactions\Actor_Print.cs" />
+    <Compile Include="Assets\Player_Interactions\PauseMenuManager.cs" />
     <Compile Include="Assets\Player_Interactions\Actor_Text.cs" />
     <Compile Include="Assets\Player_Interactions\Actor_Video.cs" />
     <Compile Include="Assets\Player_InputSystem\PointingBehavior.cs" />
     <Compile Include="Assets\UnityTechnologies\EffectExamples\Shared\Scripts\ParticleCollision.cs" />
     <Compile Include="Assets\Player_InputSystem\PointingController_PC.cs" />
     <Compile Include="Assets\Scripts\DataController.cs" />
+    <Compile Include="Assets\Player_Interactions\FinalScene2ControlsGuide.cs" />
     <Compile Include="Assets\Scripts\PlayerHealth.cs" />
     <Compile Include="Assets\Player_Interactions\Actor_AmmoPickup.cs" />
     <Compile Include="Assets\Scripts\Actor_DataSaverLoader.cs" />
     <Compile Include="Assets\Player_Interactions\Actor_Flash.cs" />
+    <Compile Include="Assets\Player_Interactions\DamageTrap.cs" />
     <Compile Include="Assets\Player_Interactions\EnemyRandomMove.cs" />
     <Compile Include="Assets\Player_InputSystem\States.cs" />
     <Compile Include="Assets\Player_InputSystem\ItemBehavior.cs" />
     <Compile Include="Assets\Player_Interactions\Actor_Audio.cs" />
     <Compile Include="Assets\Player_InputSystem\Interface_ITeleportInput.cs" />
     <Compile Include="Assets\Player_Interactions\Actor_Camera.cs" />
+    <Compile Include="Assets\Player_Interactions\FinalScene2EnemyModelApplier.cs" />
     <Compile Include="Assets\UnityTechnologies\EffectExamples\Shared\Scripts\DecalDestroyer.cs" />
     <Compile Include="Assets\Player_InputSystem\Interface_IInteractable.cs" />
     <Compile Include="Assets\Player_Interactions\AmmoUI.cs" />
@@ -117,8 +123,10 @@
     <Compile Include="Assets\Player_Interactions\Trigger_PhysicalKeyButton.cs" />
     <Compile Include="Assets\Player_InputSystem\GrabController_PC.cs" />
     <Compile Include="Assets\Player_InputSystem\TeleportController_PC.cs" />
+    <Compile Include="Assets\FINAL\QuitGame.cs" />
     <Compile Include="Assets\Scripts\EnemyHealth.cs" />
     <Compile Include="Assets\Player_Interactions\Actor_MedKit.cs" />
+    <Compile Include="Assets\FINAL\JellyButtonEffect.cs" />
     <Compile Include="Assets\Player_InputSystem\LookController_PC.cs" />
     <Compile Include="Assets\Scripts\Actor_EnemyShooter.cs" />
     <Compile Include="Assets\UnityTechnologies\EffectExamples\TutorialInfo\Scripts\Readme.cs" />
@@ -133,6 +141,7 @@
     <Compile Include="Assets\Player_Interactions\Actor_Mouse.cs" />
     <Compile Include="Assets\Player_Interactions\Actor_Item_Flash.cs" />
     <Compile Include="Assets\UnityTechnologies\EffectExamples\Shared\Scripts\ExtinguishableFire.cs" />
+    <Compile Include="Assets\Player_Interactions\FinalScene2MapCustomizer.cs" />
     <Compile Include="Assets\Player_Interactions\Actor_Outline.cs" />
     <Compile Include="Assets\Player_Interactions\Trigger_Collision.cs" />
     <Compile Include="Assets\Player_Interactions\Actor_Pistol.cs" />

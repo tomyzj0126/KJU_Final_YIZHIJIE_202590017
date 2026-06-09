@@ -16,6 +16,36 @@ public class Actor_Rifle : InterfaceBase_IItem
     private bool isFiring = false;
     private float lastFireTime;
 
+    [Header("Audio Options")]
+    public AudioClip FireSound;
+    public AudioClip ReloadSound;
+    [Range(0f, 1f)] public float FireVolume = 0.85f;
+    [Range(0f, 1f)] public float ReloadVolume = 0.8f;
+
+    private AudioSource audioSource;
+
+    private void Awake()
+    {
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 0f;
+
+        if (FireSound == null)
+        {
+            FireSound = Resources.Load<AudioClip>("Audio/SFX/Weapon_Fire");
+        }
+
+        if (ReloadSound == null)
+        {
+            ReloadSound = Resources.Load<AudioClip>("Audio/SFX/Weapon_Reload");
+        }
+    }
+
     public override void OnEquip(GameObject itemHolder)
     {
         base.OnEquip(itemHolder);
@@ -71,6 +101,7 @@ public class Actor_Rifle : InterfaceBase_IItem
 
         CurrentAmmo--;
         UpdateAmmoUI();
+        PlaySound(FireSound, FireVolume);
 
         Vector3 pos = FirePoint.position;
         Quaternion dir = FirePoint.rotation;
@@ -99,8 +130,17 @@ public class Actor_Rifle : InterfaceBase_IItem
         ReserveAmmo -= reloadAmmo;
 
         UpdateAmmoUI();
+        PlaySound(ReloadSound, ReloadVolume);
 
         Debug.Log($"[Rifle] Reloaded: {CurrentAmmo}/{ReserveAmmo}");
+    }
+
+    void PlaySound(AudioClip clip, float volume)
+    {
+        if (audioSource != null && clip != null)
+        {
+            audioSource.PlayOneShot(clip, volume);
+        }
     }
 
     void UpdateAmmoUI()

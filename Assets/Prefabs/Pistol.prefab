@@ -829,7 +829,23 @@ MonoBehaviour:
   FirePoint: {fileID: 7723720757472547907}
   Bullet: {fileID: 1140185514427117624, guid: a35733c83237445caa0cc27adabc6be9, type: 3}
   BulletSpeed: 20
-  BulletDamage: 5
+  BulletDamage: 10
+  MagazineSize: 7
+  CurrentAmmo: 7
+  ReserveAmmo: 21
+  FireSound: {fileID: 0}
+  ReloadSound: {fileID: 0}
+  FireVolume: 0.9
+  ReloadVolume: 0.8
+  WeaponVisualResourcePath: Models/Revolver/source/Revolver
+  WeaponVisualBaseColorTextureResourcePath: Models/Revolver/textures/rev_d.tga
+  WeaponVisualLocalPosition: {x: 0, y: 0, z: 0}
+  WeaponVisualLocalEulerAngles: {x: 0, y: 0, z: 0}
+  WeaponVisualForwardFlipEulerAngles: {x: 0, y: 180, z: 90}
+  AutoAlignWeaponVisual: 1
+  AutoFitWeaponVisual: 1
+  WeaponVisualTargetLength: 0.45
+  HideDefaultWeaponVisuals: 1
 --- !u!114 &1371468900297504586
 MonoBehaviour:
   m_ObjectHideFlags: 0

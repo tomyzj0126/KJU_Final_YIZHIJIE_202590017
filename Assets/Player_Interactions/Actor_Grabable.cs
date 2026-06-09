@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-// [RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Rigidbody))]
 public class Actor_Grabable : MonoBehaviour
 {
     [Header("마우스 클릭으로 게임오브젝트의 쥐기/놓기를 제어하는 클래스.")]
@@ -23,6 +23,7 @@ public class Actor_Grabable : MonoBehaviour
     private Rigidbody rb;
     private bool isGrabbed = false;
     private bool isPulling = false;
+    private Coroutine pullRoutine;
     //public float pokeForce = 5f;       // 미는 세기
     //public float releaseForce = 5f;       // 던지는 세기
     //public float upwardForce = 2f;      // 약간 위로 솟구치게 하는 세기
@@ -33,12 +34,17 @@ public class Actor_Grabable : MonoBehaviour
     {
         defaultParent = transform.parent;
         rb = GetComponent<Rigidbody>();
+        if (rb == null)
+        {
+            rb = gameObject.AddComponent<Rigidbody>();
+        }
     }
 
     public void Act_DistancePoke(GameObject hand)
     {
         Debug.Log($"Act_DistancePoke");
-        if (rb == null || isGrabbed) return;
+        if (hand == null || isGrabbed) return;
+        EnsureRigidbody();
 
         // 플레이어로부터 물체 방향으로 힘을 가함
         Vector3 pushDirection = (transform.position - hand.transform.position).normalized;
@@ -52,7 +58,14 @@ public class Actor_Grabable : MonoBehaviour
     }
     public void Act_DistanceGrab(GameObject hand)
     {
-        PlayerManager.Instance.SetInteractionState(PlayerInteractionState.Grabing);
+        if (hand == null || isGrabbed) return;
+
+        if (PlayerManager.Instance != null)
+        {
+            PlayerManager.Instance.SetInteractionState(PlayerInteractionState.Grabing);
+        }
+
+        EnsureRigidbody();
         if (isGrabbed) return;
         isGrabbed = true;
 
@@ -71,8 +84,9 @@ public class Actor_Grabable : MonoBehaviour
 
     public void Act_DistancePull(GameObject hand)
     {
-        if (isGrabbed || isPulling) return;
-        StartCoroutine(PullRoutine(hand.transform));
+        if (hand == null || isGrabbed || isPulling) return;
+        EnsureRigidbody();
+        pullRoutine = StartCoroutine(PullRoutine(hand.transform));
     }
 
     private System.Collections.IEnumerator PullRoutine(Transform hand)
@@ -109,12 +123,14 @@ public class Actor_Grabable : MonoBehaviour
 
         // 완전히 도착한 후 Grab 로직 실행
         isPulling = false;
+        pullRoutine = null;
         Act_Grab(hand.gameObject);
     }
 
     public void Act_Grab(GameObject hand)
     {
-        if (isGrabbed) return;
+        if (hand == null || isGrabbed) return;
+        EnsureRigidbody();
         isGrabbed = true;
         rb.isKinematic = true;
         rb.useGravity = false;
@@ -142,9 +158,11 @@ public class Actor_Grabable : MonoBehaviour
         // 상태 초기화
         Act_Release();
 
+        EnsureRigidbody();
         rb.drag = releaseDrag;
         rb.angularDrag = releaseAngularDrag;
-        Vector3 forceDirection = hand.transform.forward * ReleaseForce.z + Vector3.up * ReleaseForce.y;
+        Vector3 forward = hand != null ? hand.transform.forward : transform.forward;
+        Vector3 forceDirection = forward * ReleaseForce.z + Vector3.up * ReleaseForce.y;
         // Impulse 모드는 순간적인 충격량을 가할 때 적합합니다.
         rb.AddForce(forceDirection, ForceMode.Impulse);
         // 회전력 추가 (물체가 회전하면서 날아가게 해서 더 자연스럽게 연출)
@@ -153,17 +171,39 @@ public class Actor_Grabable : MonoBehaviour
 
     public void Act_Release() // hand = Holder/Hand
     {
+        if (pullRoutine != null)
+        {
+            StopCoroutine(pullRoutine);
+            pullRoutine = null;
+        }
+
         // 1. 부모 해제
         transform.SetParent(defaultParent);
 
         // 2. 물리 시뮬레이션 재개
-        rb.isKinematic = false;
-        rb.useGravity = true;
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            rb.useGravity = true;
+        }
 
         // 3. 상태 초기화
         isGrabbed = false;
         isPulling = false;
 
         Debug.Log($"Actor_Grabable:{gameObject.name} 놓음");
+    }
+
+    private void EnsureRigidbody()
+    {
+        if (rb == null)
+        {
+            rb = GetComponent<Rigidbody>();
+        }
+
+        if (rb == null)
+        {
+            rb = gameObject.AddComponent<Rigidbody>();
+        }
     }
 }

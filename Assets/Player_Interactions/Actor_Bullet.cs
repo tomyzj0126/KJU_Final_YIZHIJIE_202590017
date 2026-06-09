@@ -4,15 +4,309 @@ public class Actor_Bullet : MonoBehaviour
 {
     public GameObject MissEffect, HitEffect;
     public GameObject ShootSound, HitSound;
+
+    [Header("Visual Model")]
+    public string VisualModelResourcePath = "Models/SniperBullet/source/Bala";
+    public string VisualModelBaseColorTextureResourcePath = "";
+    public string VisualModelHiddenNameFragments = "";
+    public Vector3 VisualModelLocalPosition = Vector3.zero;
+    public Vector3 VisualModelLocalEulerAngles = Vector3.zero;
+    public Vector3 VisualModelForwardFlipEulerAngles = new Vector3(0f, 180f, 0f);
+    public bool AutoAlignVisualModel = true;
+    public bool AutoFitVisualModel = true;
+    public float VisualModelTargetLength = 0.28f;
+    public bool HideDefaultVisuals = true;
+
     private float bulletDamage = 5f;    
     private bool isHit = false;  
 
     private Rigidbody rb;
     private Vector3 lastVelocity; // [추가] 물리 엔진이 속도를 0으로 만들기 전의 속도를 기억할 변수
+    private GameObject activeVisualModel;
+    private static readonly Vector3[] VisualAlignmentRotations =
+    {
+        Vector3.zero,
+        new Vector3(90f, 0f, 0f),
+        new Vector3(-90f, 0f, 0f),
+        new Vector3(0f, 90f, 0f),
+        new Vector3(0f, -90f, 0f),
+        new Vector3(0f, 0f, 90f),
+        new Vector3(0f, 0f, -90f),
+        new Vector3(180f, 0f, 0f),
+        new Vector3(0f, 180f, 0f),
+        new Vector3(0f, 0f, 180f)
+    };
+
+    void Awake()
+    {
+        SetupVisualModel();
+    }
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+    }
+
+    private void SetupVisualModel(string visualModelName = "SniperBullet_Model")
+    {
+        ClearActiveVisualModel();
+
+        if (string.IsNullOrWhiteSpace(VisualModelResourcePath))
+        {
+            return;
+        }
+
+        GameObject visualPrefab = Resources.Load<GameObject>(VisualModelResourcePath);
+        if (visualPrefab == null)
+        {
+            Debug.LogWarning($"Bullet visual model not found in Resources: {VisualModelResourcePath}", this);
+            return;
+        }
+
+        if (HideDefaultVisuals)
+        {
+            foreach (Renderer defaultRenderer in GetComponentsInChildren<Renderer>(true))
+            {
+                defaultRenderer.enabled = false;
+            }
+        }
+
+        GameObject visualModel = Instantiate(visualPrefab, transform);
+        activeVisualModel = visualModel;
+        visualModel.name = visualModelName;
+        visualModel.transform.localPosition = VisualModelLocalPosition;
+        visualModel.transform.localRotation = Quaternion.Euler(VisualModelLocalEulerAngles);
+        visualModel.transform.localScale = Vector3.one;
+
+        HideVisualModelNameFragments(visualModel);
+
+        foreach (Collider visualCollider in visualModel.GetComponentsInChildren<Collider>())
+        {
+            visualCollider.enabled = false;
+        }
+
+        foreach (Rigidbody visualRigidbody in visualModel.GetComponentsInChildren<Rigidbody>())
+        {
+            Destroy(visualRigidbody);
+        }
+
+        ApplyVisualModelTexture(visualModel);
+
+        if (AutoAlignVisualModel)
+        {
+            AlignVisualModelForward(visualModel);
+        }
+
+        if (VisualModelForwardFlipEulerAngles != Vector3.zero)
+        {
+            visualModel.transform.localRotation *= Quaternion.Euler(VisualModelForwardFlipEulerAngles);
+        }
+
+        if (AutoFitVisualModel)
+        {
+            FitVisualModelToBullet(visualModel);
+        }
+    }
+
+    private void ClearActiveVisualModel()
+    {
+        if (activeVisualModel == null)
+        {
+            return;
+        }
+
+        foreach (Renderer visualRenderer in activeVisualModel.GetComponentsInChildren<Renderer>(true))
+        {
+            visualRenderer.enabled = false;
+        }
+
+        activeVisualModel.transform.SetParent(null, false);
+
+        if (Application.isPlaying)
+        {
+            Destroy(activeVisualModel);
+        }
+        else
+        {
+            DestroyImmediate(activeVisualModel);
+        }
+
+        activeVisualModel = null;
+    }
+
+    private void HideVisualModelNameFragments(GameObject visualModel)
+    {
+        if (string.IsNullOrWhiteSpace(VisualModelHiddenNameFragments))
+        {
+            return;
+        }
+
+        string[] fragments = VisualModelHiddenNameFragments.Split(';', ',');
+        foreach (Transform visualTransform in visualModel.GetComponentsInChildren<Transform>(true))
+        {
+            if (visualTransform == visualModel.transform)
+            {
+                continue;
+            }
+
+            string lowerName = visualTransform.name.ToLowerInvariant();
+            for (int i = 0; i < fragments.Length; i++)
+            {
+                string fragment = fragments[i].Trim().ToLowerInvariant();
+                if (!string.IsNullOrEmpty(fragment) && lowerName.Contains(fragment))
+                {
+                    visualTransform.gameObject.SetActive(false);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void ApplyVisualModelTexture(GameObject visualModel)
+    {
+        if (string.IsNullOrWhiteSpace(VisualModelBaseColorTextureResourcePath))
+        {
+            return;
+        }
+
+        Texture2D baseColorTexture = Resources.Load<Texture2D>(VisualModelBaseColorTextureResourcePath);
+        if (baseColorTexture == null)
+        {
+            return;
+        }
+
+        foreach (Renderer visualRenderer in visualModel.GetComponentsInChildren<Renderer>())
+        {
+            Material[] materials = visualRenderer.materials;
+            for (int i = 0; i < materials.Length; i++)
+            {
+                if (materials[i] != null && materials[i].HasProperty("_MainTex"))
+                {
+                    materials[i].mainTexture = baseColorTexture;
+                }
+            }
+        }
+    }
+
+    public void SetVisualModel(
+        string resourcePath,
+        string baseColorTextureResourcePath,
+        string hiddenNameFragments,
+        Vector3 localPosition,
+        Vector3 localEulerAngles,
+        Vector3 forwardFlipEulerAngles,
+        bool autoAlign,
+        bool autoFit,
+        float targetLength,
+        bool hideDefaultVisuals,
+        string visualModelName)
+    {
+        VisualModelResourcePath = resourcePath;
+        VisualModelBaseColorTextureResourcePath = baseColorTextureResourcePath;
+        VisualModelHiddenNameFragments = hiddenNameFragments;
+        VisualModelLocalPosition = localPosition;
+        VisualModelLocalEulerAngles = localEulerAngles;
+        VisualModelForwardFlipEulerAngles = forwardFlipEulerAngles;
+        AutoAlignVisualModel = autoAlign;
+        AutoFitVisualModel = autoFit;
+        VisualModelTargetLength = targetLength;
+        HideDefaultVisuals = hideDefaultVisuals;
+
+        SetupVisualModel(visualModelName);
+    }
+
+    private void AlignVisualModelForward(GameObject visualModel)
+    {
+        Quaternion baseRotation = Quaternion.Euler(VisualModelLocalEulerAngles);
+        Quaternion bestRotation = baseRotation;
+        float bestScore = float.NegativeInfinity;
+
+        for (int i = 0; i < VisualAlignmentRotations.Length; i++)
+        {
+            visualModel.transform.localRotation = baseRotation * Quaternion.Euler(VisualAlignmentRotations[i]);
+
+            if (!TryGetVisualBoundsInBulletSpace(visualModel, out Bounds bounds))
+            {
+                continue;
+            }
+
+            float sideSize = Mathf.Max(bounds.size.x, bounds.size.y);
+            float score = bounds.size.z - sideSize;
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestRotation = visualModel.transform.localRotation;
+            }
+        }
+
+        visualModel.transform.localRotation = bestRotation;
+    }
+
+    private void FitVisualModelToBullet(GameObject visualModel)
+    {
+        if (!TryGetVisualBoundsInBulletSpace(visualModel, out Bounds bounds) || VisualModelTargetLength <= 0f)
+        {
+            return;
+        }
+
+        float longestSide = Mathf.Max(bounds.size.x, Mathf.Max(bounds.size.y, bounds.size.z));
+        if (longestSide > 0.001f)
+        {
+            float scaleMultiplier = VisualModelTargetLength / longestSide;
+            visualModel.transform.localScale *= scaleMultiplier;
+        }
+
+        if (TryGetVisualBoundsInBulletSpace(visualModel, out bounds))
+        {
+            visualModel.transform.localPosition += VisualModelLocalPosition - bounds.center;
+        }
+    }
+
+    private bool TryGetVisualBoundsInBulletSpace(GameObject visualModel, out Bounds bounds)
+    {
+        Renderer[] renderers = visualModel.GetComponentsInChildren<Renderer>();
+        bounds = new Bounds();
+
+        if (renderers.Length == 0)
+        {
+            return false;
+        }
+
+        bool hasBounds = false;
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            if (!renderers[i].enabled || !renderers[i].gameObject.activeInHierarchy)
+            {
+                continue;
+            }
+
+            Bounds rendererBounds = renderers[i].bounds;
+            Vector3 min = rendererBounds.min;
+            Vector3 max = rendererBounds.max;
+
+            EncapsulateBulletLocalPoint(transform.InverseTransformPoint(new Vector3(min.x, min.y, min.z)), ref bounds, ref hasBounds);
+            EncapsulateBulletLocalPoint(transform.InverseTransformPoint(new Vector3(min.x, min.y, max.z)), ref bounds, ref hasBounds);
+            EncapsulateBulletLocalPoint(transform.InverseTransformPoint(new Vector3(min.x, max.y, min.z)), ref bounds, ref hasBounds);
+            EncapsulateBulletLocalPoint(transform.InverseTransformPoint(new Vector3(min.x, max.y, max.z)), ref bounds, ref hasBounds);
+            EncapsulateBulletLocalPoint(transform.InverseTransformPoint(new Vector3(max.x, min.y, min.z)), ref bounds, ref hasBounds);
+            EncapsulateBulletLocalPoint(transform.InverseTransformPoint(new Vector3(max.x, min.y, max.z)), ref bounds, ref hasBounds);
+            EncapsulateBulletLocalPoint(transform.InverseTransformPoint(new Vector3(max.x, max.y, min.z)), ref bounds, ref hasBounds);
+            EncapsulateBulletLocalPoint(transform.InverseTransformPoint(new Vector3(max.x, max.y, max.z)), ref bounds, ref hasBounds);
+        }
+
+        return hasBounds;
+    }
+
+    private void EncapsulateBulletLocalPoint(Vector3 point, ref Bounds bounds, ref bool hasBounds)
+    {
+        if (!hasBounds)
+        {
+            bounds = new Bounds(point, Vector3.zero);
+            hasBounds = true;
+            return;
+        }
+
+        bounds.Encapsulate(point);
     }
 
     void FixedUpdate()
