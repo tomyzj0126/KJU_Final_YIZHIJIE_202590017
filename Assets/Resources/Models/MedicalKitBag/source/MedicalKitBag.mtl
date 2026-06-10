@@ -1,0 +1,8 @@
+newmtl MedicalKitBag_Mat
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 0.050 0.050 0.050
+Ns 16
+d 1.0
+illum 2
+map_Kd ../textures/gltf_embedded_0.jpeg

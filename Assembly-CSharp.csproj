@@ -127,6 +127,7 @@
     <Compile Include="Assets\Scripts\EnemyHealth.cs" />
     <Compile Include="Assets\Player_Interactions\Actor_MedKit.cs" />
     <Compile Include="Assets\FINAL\JellyButtonEffect.cs" />
+    <Compile Include="Assets\Player_Interactions\FinalScene2MedKitModelApplier.cs" />
     <Compile Include="Assets\Player_InputSystem\LookController_PC.cs" />
     <Compile Include="Assets\Scripts\Actor_EnemyShooter.cs" />
     <Compile Include="Assets\UnityTechnologies\EffectExamples\TutorialInfo\Scripts\Readme.cs" />
