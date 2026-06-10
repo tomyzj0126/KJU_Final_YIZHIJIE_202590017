@@ -659,13 +659,13 @@ public class FinalScene2EnemyModelApplier : MonoBehaviour
 
         foreach (Renderer renderer in weapon.GetComponentsInChildren<Renderer>(true))
         {
-            Material[] materials = renderer.materials;
+            Material[] materials = renderer.sharedMaterials;
             for (int i = 0; i < materials.Length; i++)
             {
                 materials[i] = weaponMaterial;
             }
 
-            renderer.materials = materials;
+            renderer.sharedMaterials = materials;
         }
     }
 
@@ -704,13 +704,13 @@ public class FinalScene2EnemyModelApplier : MonoBehaviour
     {
         foreach (Renderer renderer in model.GetComponentsInChildren<Renderer>(true))
         {
-            Material[] materials = renderer.materials;
+            Material[] materials = renderer.sharedMaterials;
             for (int i = 0; i < materials.Length; i++)
             {
                 materials[i] = PickTerroristMaterial(materials[i] != null ? materials[i].name : string.Empty, i);
             }
 
-            renderer.materials = materials;
+            renderer.sharedMaterials = materials;
         }
     }
 
